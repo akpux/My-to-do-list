@@ -88,3 +88,14 @@ struct TaskEditorView: View {
         dismiss()
     }
 }
+
+#Preview("New task") {
+    TaskEditorView()
+        .modelContainer(PreviewSupport.empty)
+}
+
+#Preview("Edit task") {
+    let sample = PreviewSupport.sampleTask()
+    return TaskEditorView(task: sample.task)
+        .modelContainer(sample.container)
+}

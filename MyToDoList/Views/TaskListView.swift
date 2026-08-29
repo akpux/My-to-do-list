@@ -126,10 +126,21 @@ struct TaskListView: View {
     }
 }
 
-#Preview {
-    let container = try! ModelContainer(for: TodoTask.self, UserProfile.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let profile = UserProfile(displayName: "Avery")
-    container.mainContext.insert(profile)
-    container.mainContext.insert(TodoTask(title: "Plan the week", dueDate: .now.addingTimeInterval(3_600), category: .work, priority: .high))
-    return TaskListView(profile: profile).modelContainer(container)
+#Preview("Pending tasks") {
+    var profile: UserProfile!
+    let container = PreviewSupport.container { context in
+        profile = PreviewSupport.insertSampleData(into: context)
+    }
+    return TaskListView(profile: profile)
+        .modelContainer(container)
+}
+
+#Preview("Empty list") {
+    var profile: UserProfile!
+    let container = PreviewSupport.container { context in
+        profile = UserProfile(displayName: "Avery")
+        context.insert(profile)
+    }
+    return TaskListView(profile: profile)
+        .modelContainer(container)
 }

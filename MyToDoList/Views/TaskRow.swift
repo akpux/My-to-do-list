@@ -70,3 +70,19 @@ struct TaskRow: View {
         .lineLimit(1)
     }
 }
+
+#Preview("Pending") {
+    let sample = PreviewSupport.sampleTask()
+    return List {
+        TaskRow(task: sample.task, toggleCompletion: {}, delete: {}, reinstate: {})
+    }
+    .modelContainer(sample.container)
+}
+
+#Preview("Completed") {
+    let sample = PreviewSupport.sampleTask(title: "Reply to mail", isCompleted: true)
+    return List {
+        TaskRow(task: sample.task, toggleCompletion: {}, delete: {}, reinstate: {})
+    }
+    .modelContainer(sample.container)
+}

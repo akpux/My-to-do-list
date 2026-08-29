@@ -16,8 +16,12 @@ struct RootView: View {
     }
 }
 
-#Preview {
+#Preview("Name gate") {
     RootView()
-        .modelContainer(for: [TodoTask.self, UserProfile.self], inMemory: true)
+        .modelContainer(PreviewSupport.empty)
 }
 
+#Preview("Task list") {
+    RootView()
+        .modelContainer(PreviewSupport.populated)
+}
