@@ -4,6 +4,16 @@ enum AppTheme {
     static let accent = Color(red: 142 / 255, green: 31 / 255, blue: 253 / 255)
     static let subtleAccent = Color(red: 243 / 255, green: 240 / 255, blue: 1)
     static let cardBorder = Color(uiColor: .separator).opacity(0.45)
+    static let priorityHigh = Color(red: 199 / 255, green: 117 / 255, blue: 1 / 255)
+    static let priorityMedium = Color(red: 187 / 255, green: 149 / 255, blue: 0 / 255)
+
+    static func priorityColor(for priority: TaskPriority?) -> Color {
+        switch priority {
+        case .high: priorityHigh
+        case .medium: priorityMedium
+        case .low, nil: Color.primary
+        }
+    }
 }
 
 extension View {
