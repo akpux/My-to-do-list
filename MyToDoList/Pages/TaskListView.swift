@@ -7,6 +7,73 @@ private enum TaskTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+private struct TaskTabSegmentedControl: UIViewRepresentable {
+    @Binding var selection: TaskTab
+    var pendingCount: Int
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(selection: $selection)
+    }
+
+    func makeUIView(context: Context) -> UISegmentedControl {
+        let control = UISegmentedControl(items: titles)
+        control.selectedSegmentIndex = selection == .pending ? 0 : 1
+        control.apportionsSegmentWidthsByContent = false
+        control.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
+        control.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        control.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return control
+    }
+
+    func updateUIView(_ control: UISegmentedControl, context: Context) {
+        let pendingTitle = titles[0]
+        if control.titleForSegment(at: 0) != pendingTitle {
+            control.setTitle(pendingTitle, forSegmentAt: 0)
+        }
+        let index = selection == .pending ? 0 : 1
+        if control.selectedSegmentIndex != index {
+            control.selectedSegmentIndex = index
+        }
+        context.coordinator.selection = $selection
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UISegmentedControl, context: Context) -> CGSize? {
+        CGSize(width: proposal.width ?? uiView.intrinsicContentSize.width, height: AppTheme.segmentedControlHeight)
+    }
+
+    private var titles: [String] {
+        ["\(TaskTab.pending.rawValue) (\(pendingCount))", TaskTab.completed.rawValue]
+    }
+
+    final class Coordinator: NSObject {
+        var selection: Binding<TaskTab>
+
+        init(selection: Binding<TaskTab>) {
+            self.selection = selection
+        }
+
+        @objc func valueChanged(_ sender: UISegmentedControl) {
+            selection.wrappedValue = sender.selectedSegmentIndex == 0 ? .pending : .completed
+        }
+    }
+}
+
+private struct TaskListSubtitle: ViewModifier {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.navigationSubtitle(text)
+        } else {
+            content
+        }
+    }
+}
+
 struct TaskListView: View {
     let profile: UserProfile
     @Environment(\.modelContext) private var modelContext
@@ -25,40 +92,72 @@ struct TaskListView: View {
     var body: some View {
         NavigationStack {
             List {
+                TaskTabSegmentedControl(selection: $selectedTab, pendingCount: count(for: .pending))
+                    .accessibilityLabel("Task status")
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: AppTheme.segmentedControlPageInset,
+                            leading: AppTheme.segmentedControlPageInset,
+                            bottom: AppTheme.segmentedControlPageInset,
+                            trailing: AppTheme.segmentedControlPageInset
+                        )
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+
                 if visibleTasks.isEmpty {
-                    ContentUnavailableView(
-                        selectedTab == .pending ? "No pending tasks" : "No completed tasks",
-                        systemImage: selectedTab == .pending ? "checkmark.circle" : "tray",
-                        description: Text(selectedTab == .pending ? "Add a task to get started." : "Completed tasks will appear here."))
-                        .listRowBackground(Color.clear)
+                    TaskListEmptyState(isPending: selectedTab == .pending)
                         .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 24, leading: 16, bottom: 24, trailing: 16))
                 } else {
                     ForEach(TaskGrouping.sections(for: visibleTasks)) { section in
-                        Section(section.title) {
+                        Section {
                             ForEach(section.tasks) { task in
                                 TaskRow(
                                     task: task,
                                     toggleCompletion: { toggle(task) },
-                                    delete: { delete(task) },
-                                    reinstate: { taskToReinstate = task }
+                                    reinstate: { taskToReinstate = task },
+                                    edit: { taskToEdit = task }
                                 )
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    if task.isCompleted {
+                                        Button(role: .destructive, action: { delete(task) }) {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
+                                }
                             }
+                        } header: {
+                            TaskDateHeader(title: section.title)
+                                .textCase(nil)
+                                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                         }
                     }
                 }
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Hey, \(profile.displayName)")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Picker("Task status", selection: $selectedTab) {
-                        ForEach(TaskTab.allCases) { tab in
-                            Text("\(tab.rawValue) (\(count(for: tab)))").tag(tab)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 210)
+            .navigationBarTitleDisplayMode(.large)
+            .modifier(TaskListSubtitle("Let’s organise your day"))
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    isPresentingNewTask = true
+                } label: {
+                    Label("Add Task", systemImage: "plus")
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(AppTheme.accent)
+                .accessibilityIdentifier("task.add")
+                .padding(.bottom, 8)
+            }
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Picker("Sort tasks", selection: $sort) {
@@ -67,23 +166,16 @@ struct TaskListView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "arrow.up.arrow.down.circle")
+                        Image("FunnelSimple")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(10)
+                            .background(AppTheme.subtleAccent, in: Circle())
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Sort tasks")
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Spacer()
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Button {
-                        isPresentingNewTask = true
-                    } label: {
-                        Label("Add Task", systemImage: "plus")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppTheme.accent)
-                    .accessibilityIdentifier("task.add")
-                    Spacer()
                 }
             }
             .fullScreenCover(isPresented: $isPresentingNewTask) {

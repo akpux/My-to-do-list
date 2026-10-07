@@ -40,3 +40,16 @@ First launch asks only for a **name**, then opens the task list. Tasks and that 
 Sign Up and Forgot Password remain in the project as frontend-only screens for a later phase. They are not in the launch flow. Passwords on those screens are never stored.
 
 There is no backend, account provider, sync, or analytics.
+
+## Task photos (Unsplash)
+
+Each task can show a stock photo chosen from a short, generic query derived from its title and type. The full spec is in `MD files/FRD.md` (§4–§9). Sensitive titles are never searched, and a photo failure never blocks saving a task: the row simply keeps its category icon.
+
+Setup (optional; without a key the app works and shows icons):
+
+1. Create an Unsplash developer app and copy its **Access Key**.
+2. Put it in `.env` at the repo root: `UNSPLASH_ACCESS_KEY="..."`. `.env` is gitignored.
+3. Run `scripts/sync-secrets.sh`. This copies **only** the access key into the gitignored `Config/Secrets.xcconfig`. Re-run it after editing `.env`.
+4. Build and run. The key reaches the app through `Config/App-Info.plist`.
+
+Never put the Unsplash **Secret Key** in the app; search does not need it, and the script deliberately never copies it. Demo-mode apps are limited to 50 requests per hour. Unsplash requires the visible photo credit and a download ping per photo; both are implemented.

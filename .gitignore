@@ -9,3 +9,9 @@ xcuserdata/
 *.xcuserstate
 *.moved-aside
 *.swp
+
+# Secrets: never commit. .env is the source; Config/Secrets.xcconfig is derived from it.
+.env
+.env.*
+!.env.example
+Config/Secrets.xcconfig
