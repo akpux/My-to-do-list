@@ -1,0 +1,11 @@
+// Base build settings for the MyToDoList app target.
+//
+// UNSPLASH_ACCESS_KEY defaults to empty. When it is empty the app never calls
+// Unsplash and task rows keep the category SF Symbol (visual status skippedNoKey).
+//
+// Config/Secrets.xcconfig is gitignored and generated from .env by
+// scripts/sync-secrets.sh. The optional include (#include?) means a fresh clone
+// still builds without it.
+UNSPLASH_ACCESS_KEY =
+
+#include? "Secrets.xcconfig"

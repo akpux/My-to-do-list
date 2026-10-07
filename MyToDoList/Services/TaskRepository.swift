@@ -10,6 +10,7 @@ struct TaskRepository {
     }
 
     func delete(_ task: TodoTask) {
+        TaskVisualService.shared.cancel(taskID: task.id)
         modelContext.delete(task)
         save()
     }
