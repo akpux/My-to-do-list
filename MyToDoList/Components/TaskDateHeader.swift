@@ -1,25 +1,32 @@
 import SwiftUI
 
-/// HUI Header `Type=Nested`: 17pt semibold, secondary label, leading.
+/// Widget container date row: caption between two rules, e.g. `12 Aug, Fri`.
 struct TaskDateHeader: View {
     let title: String
 
     var body: some View {
-        Text(title)
-            .font(.headline)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(spacing: 8) {
+            rule
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.dateDividerLabel)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+            rule
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var rule: some View {
+        Rectangle()
+            .fill(AppTheme.dateDividerRule)
+            .frame(height: 1)
+            .frame(maxWidth: .infinity)
     }
 }
 
 #Preview {
-    List {
-        Section {
-            Text("Task")
-        } header: {
-            TaskDateHeader(title: "Today")
-                .textCase(nil)
-        }
-    }
-    .listStyle(.plain)
+    TaskDateHeader(title: "12 Aug, Fri")
+        .padding()
+        .background(Color(.systemGroupedBackground))
 }

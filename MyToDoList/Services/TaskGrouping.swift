@@ -66,11 +66,11 @@ enum TaskGrouping {
         task.listingDate
     }
 
+    /// Widget container date label: `12 Aug, Fri`.
     static func sectionTitle(for date: Date, calendar: Calendar = .autoupdatingCurrent) -> String {
-        if calendar.isDateInToday(date) { return "Today" }
-        if calendar.isDateInYesterday(date) { return "Yesterday" }
-        let dayMonth = date.formatted(.dateTime.day().month(.abbreviated))
-        let weekday = date.formatted(.dateTime.weekday(.abbreviated))
+        let day = calendar.startOfDay(for: date)
+        let dayMonth = day.formatted(.dateTime.day().month(.abbreviated))
+        let weekday = day.formatted(.dateTime.weekday(.abbreviated))
         return "\(dayMonth), \(weekday)"
     }
 

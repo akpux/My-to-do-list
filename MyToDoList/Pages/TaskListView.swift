@@ -134,6 +134,7 @@ struct TaskListView: View {
                         } header: {
                             TaskDateHeader(title: section.title)
                                 .textCase(nil)
+                                .frame(maxWidth: .infinity)
                                 .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                         }
                     }
@@ -167,14 +168,8 @@ struct TaskListView: View {
                         }
                     } label: {
                         Image("FunnelSimple")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 24, height: 24)
                             .foregroundStyle(AppTheme.accent)
-                            .padding(10)
-                            .background(AppTheme.subtleAccent, in: Circle())
                     }
-                    .buttonStyle(.plain)
                     .accessibilityLabel("Sort tasks")
                 }
             }

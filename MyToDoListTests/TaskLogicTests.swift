@@ -23,8 +23,14 @@ final class TaskLogicTests: XCTestCase {
             calendar: calendar
         )
 
-        XCTAssertEqual(sections.first(where: { $0.title == "Today" })?.tasks.map(\.title), ["Added today"])
-        XCTAssertEqual(sections.first(where: { $0.title == "Yesterday" })?.tasks.map(\.title), ["Due today"])
+        XCTAssertEqual(
+            sections.first(where: { $0.title == TaskGrouping.sectionTitle(for: now, calendar: calendar) })?.tasks.map(\.title),
+            ["Added today"]
+        )
+        XCTAssertEqual(
+            sections.first(where: { $0.title == TaskGrouping.sectionTitle(for: yesterday, calendar: calendar) })?.tasks.map(\.title),
+            ["Due today"]
+        )
     }
 
     func testGroupingMovesOnCompletionAndReinstatement() {
