@@ -10,6 +10,7 @@ private enum TaskTab: String, CaseIterable, Identifiable {
 private struct TaskTabSegmentedControl: UIViewRepresentable {
     @Binding var selection: TaskTab
     var pendingCount: Int
+    var completedCount: Int
 
     func makeCoordinator() -> Coordinator {
         Coordinator(selection: $selection)
@@ -26,9 +27,8 @@ private struct TaskTabSegmentedControl: UIViewRepresentable {
     }
 
     func updateUIView(_ control: UISegmentedControl, context: Context) {
-        let pendingTitle = titles[0]
-        if control.titleForSegment(at: 0) != pendingTitle {
-            control.setTitle(pendingTitle, forSegmentAt: 0)
+        for index in titles.indices where control.titleForSegment(at: index) != titles[index] {
+            control.setTitle(titles[index], forSegmentAt: index)
         }
         let index = selection == .pending ? 0 : 1
         if control.selectedSegmentIndex != index {
@@ -42,7 +42,10 @@ private struct TaskTabSegmentedControl: UIViewRepresentable {
     }
 
     private var titles: [String] {
-        ["\(TaskTab.pending.rawValue) (\(pendingCount))", TaskTab.completed.rawValue]
+        [
+            "\(TaskTab.pending.rawValue) (\(pendingCount))",
+            "\(TaskTab.completed.rawValue) (\(completedCount))"
+        ]
     }
 
     final class Coordinator: NSObject {
@@ -92,13 +95,17 @@ struct TaskListView: View {
     var body: some View {
         NavigationStack {
             List {
-                TaskTabSegmentedControl(selection: $selectedTab, pendingCount: count(for: .pending))
+                TaskTabSegmentedControl(
+                    selection: $selectedTab,
+                    pendingCount: count(for: .pending),
+                    completedCount: count(for: .completed)
+                )
                     .accessibilityLabel("Task status")
                     .listRowInsets(
                         EdgeInsets(
                             top: AppTheme.segmentedControlPageInset,
                             leading: AppTheme.segmentedControlPageInset,
-                            bottom: AppTheme.segmentedControlPageInset,
+                            bottom: 0,
                             trailing: AppTheme.segmentedControlPageInset
                         )
                     )
@@ -109,7 +116,7 @@ struct TaskListView: View {
                     TaskListEmptyState(isPending: selectedTab == .pending)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 24, leading: 16, bottom: 24, trailing: 16))
+                        .listRowInsets(EdgeInsets(top: AppTheme.taskListSectionGap, leading: 16, bottom: 24, trailing: 16))
                 } else {
                     ForEach(TaskGrouping.sections(for: visibleTasks)) { section in
                         Section {
@@ -135,16 +142,18 @@ struct TaskListView: View {
                             TaskDateHeader(title: section.title)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity)
-                                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
+                                .listRowInsets(EdgeInsets(top: AppTheme.taskListSectionGap, leading: 16, bottom: 10, trailing: 16))
                         }
                     }
                 }
             }
             .listStyle(.plain)
+            .listSectionSpacing(0)
+            .environment(\.defaultMinListHeaderHeight, 0)
             .scrollContentBackground(.hidden)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Hey, \(profile.displayName)")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .modifier(TaskListSubtitle("Let’s organise your day"))
             .safeAreaInset(edge: .bottom) {
                 Button {
