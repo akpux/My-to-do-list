@@ -56,6 +56,17 @@ struct TaskEditorView: View {
                         DatePicker("Date and time", selection: $dueDate, displayedComponents: [.date, .hourAndMinute])
                     }
                 }
+
+                // Required Unsplash credit (FRD §8.2). Only when this task shows a ready photo.
+                if let task, let credit = VisualAttribution(task: task) {
+                    Section {
+                        Text(credit.attributedText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("task.photoCredit")
+                    }
+                }
             }
             .navigationTitle(task == nil ? "New Task" : "Edit Task")
             .navigationBarTitleDisplayMode(.inline)
@@ -85,6 +96,20 @@ struct TaskEditorView: View {
         } else {
             repository.save()
         }
+        // The task is already saved. Resolving its photo runs in the background and can only change
+        // the task's visual fields; it never delays or fails this save (FRD §8.3).
+        TaskVisualService.shared.resolveIfNeeded(for: destination, in: modelContext)
         dismiss()
     }
+}
+
+#Preview("New task") {
+    TaskEditorView()
+        .modelContainer(PreviewSupport.empty)
+}
+
+#Preview("Edit task") {
+    let sample = PreviewSupport.sampleTask()
+    return TaskEditorView(task: sample.task)
+        .modelContainer(sample.container)
 }

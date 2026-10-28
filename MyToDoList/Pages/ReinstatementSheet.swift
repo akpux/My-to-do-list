@@ -53,3 +53,9 @@ struct ReinstatementSheet: View {
     }
 }
 
+#Preview {
+    let sample = PreviewSupport.sampleTask(title: "Reply to mail", isCompleted: true)
+    return ReinstatementSheet(task: sample.task, perform: { _ in })
+        .modelContainer(sample.container)
+}
+

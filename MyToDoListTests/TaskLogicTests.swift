@@ -11,16 +11,51 @@ final class TaskLogicTests: XCTestCase {
         XCTAssertFalse(task.isMissed(now: now))
     }
 
-    func testGroupingUsesTodayYesterdayAndNoDeadline() {
+    func testGroupingUsesCreatedDateNotDeadline() {
         let calendar = Calendar(identifier: .gregorian)
         let now = Date.now
-        let datedTask = TodoTask(title: "Today", dueDate: now)
-        let unscheduledTask = TodoTask(title: "Later")
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
+        let createdYesterday = TodoTask(title: "Due today", dueDate: now, createdAt: yesterday)
+        let addedToday = TodoTask(title: "Added today", createdAt: now)
 
-        let sections = TaskGrouping.sections(for: [datedTask, unscheduledTask], calendar: calendar)
+        let sections = TaskGrouping.sections(
+            for: [createdYesterday, addedToday],
+            calendar: calendar
+        )
 
-        XCTAssertTrue(sections.contains(where: { $0.title == "Today" }))
-        XCTAssertTrue(sections.contains(where: { $0.title == "No deadline" }))
+        XCTAssertEqual(
+            sections.first(where: { $0.title == TaskGrouping.sectionTitle(for: now, calendar: calendar) })?.tasks.map(\.title),
+            ["Added today"]
+        )
+        XCTAssertEqual(
+            sections.first(where: { $0.title == TaskGrouping.sectionTitle(for: yesterday, calendar: calendar) })?.tasks.map(\.title),
+            ["Due today"]
+        )
+    }
+
+    func testGroupingMovesOnCompletionAndReinstatement() {
+        let calendar = Calendar(identifier: .gregorian)
+        let created = Date(timeIntervalSinceReferenceDate: 1_000)
+        let completedOn = created.addingTimeInterval(86_400 * 6)
+        let reinstatedOn = created.addingTimeInterval(86_400 * 9)
+        let task = TodoTask(title: "Pay rent", createdAt: created)
+
+        XCTAssertEqual(
+            calendar.startOfDay(for: TaskGrouping.groupingDate(for: task)),
+            calendar.startOfDay(for: created)
+        )
+
+        task.setCompleted(true, now: completedOn)
+        XCTAssertEqual(
+            calendar.startOfDay(for: TaskGrouping.groupingDate(for: task)),
+            calendar.startOfDay(for: completedOn)
+        )
+
+        task.setCompleted(false, now: reinstatedOn)
+        XCTAssertEqual(
+            calendar.startOfDay(for: TaskGrouping.groupingDate(for: task)),
+            calendar.startOfDay(for: reinstatedOn)
+        )
     }
 
     func testPrioritySortPutsHighFirst() {

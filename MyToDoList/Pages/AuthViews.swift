@@ -1,28 +1,10 @@
 import SwiftUI
 import SwiftData
 
-private enum AuthRoute: Hashable {
-    case signUp
-    case forgotPassword
-}
-
 struct LocalAuthFlowView: View {
-    @State private var path: [AuthRoute] = []
-
     var body: some View {
-        NavigationStack(path: $path) {
-            WelcomeView(
-                showSignUp: { path.append(.signUp) },
-                showForgotPassword: { path.append(.forgotPassword) }
-            )
-            .navigationDestination(for: AuthRoute.self) { route in
-                switch route {
-                case .signUp:
-                    SignUpView()
-                case .forgotPassword:
-                    ForgotPasswordView()
-                }
-            }
+        NavigationStack {
+            WelcomeView()
         }
     }
 }
@@ -30,9 +12,6 @@ struct LocalAuthFlowView: View {
 struct WelcomeView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var name = ""
-    @State private var mobileNumber = ""
-    let showSignUp: () -> Void
-    let showForgotPassword: () -> Void
 
     private var canContinue: Bool { name.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 }
 
@@ -53,21 +32,12 @@ struct WelcomeView: View {
                     .foregroundStyle(.secondary)
             }
 
-            VStack(spacing: 16) {
-                TextField("Your name", text: $name)
-                    .textContentType(.name)
-                    .textInputAutocapitalization(.words)
-                    .padding()
-                    .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityIdentifier("welcome.name")
-
-                TextField("Mobile number (optional)", text: $mobileNumber)
-                    .keyboardType(.phonePad)
-                    .textContentType(.telephoneNumber)
-                    .padding()
-                    .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityIdentifier("welcome.mobile")
-            }
+            TextField("Your name", text: $name)
+                .textContentType(.name)
+                .textInputAutocapitalization(.words)
+                .padding()
+                .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .accessibilityIdentifier("welcome.name")
 
             Button(action: createLocalProfile) {
                 Text("Continue")
@@ -77,14 +47,6 @@ struct WelcomeView: View {
             .opacity(canContinue ? 1 : 0.45)
             .accessibilityIdentifier("welcome.continue")
 
-            HStack {
-                Button("Create account", action: showSignUp)
-                Spacer()
-                Button("Forgot password", action: showForgotPassword)
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(AppTheme.accent)
-
             Spacer()
         }
         .padding(24)
@@ -93,15 +55,14 @@ struct WelcomeView: View {
 
     private func createLocalProfile() {
         guard canContinue else { return }
-        let mobile = mobileNumber.trimmingCharacters(in: .whitespacesAndNewlines)
         modelContext.insert(UserProfile(
-            displayName: name.trimmingCharacters(in: .whitespacesAndNewlines),
-            mobileNumber: mobile.isEmpty ? nil : mobile
+            displayName: name.trimmingCharacters(in: .whitespacesAndNewlines)
         ))
         try? modelContext.save()
     }
 }
 
+/// Parked for a later phase. Not shown in the MVP launch flow.
 struct SignUpView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -175,6 +136,7 @@ struct SignUpView: View {
     }
 }
 
+/// Parked for a later phase. Not shown in the MVP launch flow.
 struct ForgotPasswordView: View {
     private enum Step { case request, confirmation, reset, complete }
 
@@ -243,3 +205,22 @@ struct ForgotPasswordView: View {
     }
 }
 
+#Preview("Welcome") {
+    NavigationStack {
+        WelcomeView()
+    }
+    .modelContainer(PreviewSupport.empty)
+}
+
+#Preview("Sign Up (later)") {
+    NavigationStack {
+        SignUpView()
+    }
+    .modelContainer(PreviewSupport.empty)
+}
+
+#Preview("Forgot Password (later)") {
+    NavigationStack {
+        ForgotPasswordView()
+    }
+}
