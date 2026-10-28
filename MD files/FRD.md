@@ -376,7 +376,8 @@ Unsplash requires that images be loaded **directly from the returned `images.uns
 v1 implementation sketch (names illustrative):
 
 - `Services/VisualQueryBuilder.swift`
-- `Services/UnsplashClient.swift`
+- `API/ImageSearching.swift` (provider protocol + `ImageCandidate`)
+- `API/Unsplash/UnsplashClient.swift`, `API/Unsplash/UnsplashModels.swift`
 - `Services/TaskVisualService.swift` (orchestrates fetch + ping + persist)
 - Call from `TaskRepository` / editor save path, not from `TaskRow.body`
 
@@ -441,7 +442,7 @@ Follow `AGENTS.md`: keep a SwiftUI `List`; extend `TaskRow` as a **local card** 
 ### 8.1 Task row
 
 - **Container:** 16pt-radius card on a `List` row (clear list chrome, hidden separators, ~12pt gap). Inner divider between body and footer.
-- **Thumbnail:** 60pt rounded square (8pt radius). When `visualStatus == ready` and a URL exists: the Unsplash photo, `scaledToFill`, clipped, in the same fixed 60pt frame so a late image cannot shift layout. In every other state (including `pending`, `fallback`, `privacyBlocked`, `noResults`, `skippedNoKey`, `idle`): the category SF Symbol on `AppTheme.subtleAccent`, exactly as today. While loading, show the symbol (or the blur-hash colour block when decoding is added) — never an empty hole. File-local chrome icons (funnel, alarm, edit, checkbox mark, empty glyph) come from Assets / Console export — see `AGENTS.md` §3.1.
+- **Thumbnail:** 60pt rounded square (8pt radius). When `visualStatus == ready` and a URL exists: the Unsplash photo, `scaledToFill`, clipped, in the same fixed 60pt frame so a late image cannot shift layout. While `pending` or while `AsyncImage` is still loading a ready URL: a neutral **shimmer skeleton** (`ThumbnailShimmer`) — never an empty hole. Terminal non-photo states (`fallback`, `privacyBlocked`, `noResults`, `skippedNoKey`, `idle`, or hotlink load failure): category SF Symbol on `AppTheme.subtleAccent`. File-local chrome icons (funnel, alarm, edit, checkbox mark, empty glyph) come from Assets / Console export — see `AGENTS.md` §3.1.
 - **Body:** title (subheadline semibold); category text · priority text (High `#C77501`, Medium `#BB9500`, Low = primary label). Trailing checkbox.
 - **Footer (pending):** alarm + due datetime; **Edit** opens the existing editor cover.
 - **Completed:** `TaskRow` `State=completed` — checked checkbox, slightly dimmed thumbnail (0.55 opacity, photo or symbol), strikethrough title, Edit remains. Empty completed tab copy: “Completed tasks will appear here”. Delete via swipe.
@@ -491,7 +492,7 @@ Unsplash requires credit for every photo used. This is mandatory, not a minimum.
 | Zero results / all filtered out | `noResults` |
 | Sensitive title | `privacyBlocked`, never call the API |
 | Download ping fails | Persist the visual anyway; do not retry in a loop |
-| `pending` | Show the category symbol (blur-hash block optional), never a blank slot |
+| `pending` | Show the neutral shimmer skeleton, never a blank slot |
 | User deletes task | Cancel in-flight request |
 
 The 403 quota case and the 403 permission case share a status code. Distinguish them by `X-Ratelimit-Remaining`: `0` means quota, otherwise permission.

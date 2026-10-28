@@ -1,27 +1,5 @@
 import Foundation
 
-/// What the visuals pipeline needs from an image provider. The app only ever talks to this
-/// protocol, so tests use a mock and a second provider could be added later (FRD §11).
-protocol ImageSearching: Sendable {
-    func search(query: String) async throws -> [ImageCandidate]
-    /// Event ping only. Never used to embed or save the image (FRD §5.4).
-    func trackDownload(location: String) async throws
-}
-
-enum ImageSearchError: Error, Equatable {
-    /// 401, or a 403 that is not quota exhaustion. Stop calling until the key changes.
-    case invalidKey
-    /// 403 with `X-Ratelimit-Remaining: 0`, or 429. Enter a cooldown.
-    case quotaExhausted
-    case notFound
-    case server(Int)
-    case unexpectedStatus(Int)
-    /// Offline, timeout, DNS, TLS.
-    case network
-    case invalidResponse
-    case untrustedURL
-}
-
 /// Unsplash REST client (FRD §5.2). Search is a public action, authenticated with the **access
 /// key** only via `Authorization: Client-ID`. The secret key is for OAuth and is never used.
 struct UnsplashClient: ImageSearching {
@@ -148,81 +126,5 @@ struct UnsplashClient: ImageSearching {
         default:
             return .unexpectedStatus(status)
         }
-    }
-
-    // MARK: Decoding
-
-    static func candidates(from data: Data) throws -> [ImageCandidate] {
-        let response: SearchResponse
-        do {
-            response = try JSONDecoder().decode(SearchResponse.self, from: data)
-        } catch {
-            throw ImageSearchError.invalidResponse
-        }
-        return response.results.map { photo in
-            ImageCandidate(
-                providerPhotoID: photo.id,
-                imageURL: photo.urls?.small,
-                sourceURL: photo.links?.html,
-                downloadLocation: photo.links?.downloadLocation,
-                width: photo.width ?? 0,
-                height: photo.height ?? 0,
-                altText: nonEmpty(photo.altDescription) ?? nonEmpty(photo.description),
-                photographerName: nonEmpty(photo.user?.name),
-                photographerURL: photo.user?.links?.html,
-                blurHash: photo.blurHash
-            )
-        }
-    }
-
-    private static func nonEmpty(_ value: String?) -> String? {
-        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return value
-    }
-
-    // Tolerant DTOs: anything missing becomes nil and is rejected by `PhotoSelector.filter`.
-    private struct SearchResponse: Decodable {
-        let results: [Photo]
-    }
-
-    private struct Photo: Decodable {
-        let id: String
-        let width: Int?
-        let height: Int?
-        let blurHash: String?
-        let altDescription: String?
-        let description: String?
-        let urls: URLs?
-        let links: Links?
-        let user: User?
-
-        enum CodingKeys: String, CodingKey {
-            case id, width, height, description, urls, links, user
-            case blurHash = "blur_hash"
-            case altDescription = "alt_description"
-        }
-    }
-
-    private struct URLs: Decodable {
-        let small: String?
-    }
-
-    private struct Links: Decodable {
-        let html: String?
-        let downloadLocation: String?
-
-        enum CodingKeys: String, CodingKey {
-            case html
-            case downloadLocation = "download_location"
-        }
-    }
-
-    private struct User: Decodable {
-        let name: String?
-        let links: UserLinks?
-    }
-
-    private struct UserLinks: Decodable {
-        let html: String?
     }
 }

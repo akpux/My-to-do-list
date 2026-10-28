@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A10000000000000000000002"
-               BuildableName = ".xctest"
+               BuildableName = "MyToDoListTests.xctest"
                BlueprintName = "MyToDoListTests"
                ReferencedContainer = "container:MyToDoList.xcodeproj">
             </BuildableReference>
@@ -43,7 +43,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A10000000000000000000003"
-               BuildableName = ".xctest"
+               BuildableName = "MyToDoListUITests.xctest"
                BlueprintName = "MyToDoListUITests"
                ReferencedContainer = "container:MyToDoList.xcodeproj">
             </BuildableReference>

@@ -1,24 +1,5 @@
 import Foundation
 
-/// A provider photo normalized into our own shape (FRD §5.2 field map).
-/// Fields the filter requires are optional here so a malformed provider payload is
-/// rejected by `PhotoSelector.filter` instead of crashing the decoder.
-struct ImageCandidate: Equatable {
-    var providerPhotoID: String
-    /// `urls.small`, hotlinked as-is (never stripped, never downloaded).
-    var imageURL: String?
-    /// `links.html`, the human-facing photo page.
-    var sourceURL: String?
-    /// `links.download_location`, used for exactly one download ping.
-    var downloadLocation: String?
-    var width: Int
-    var height: Int
-    var altText: String?
-    var photographerName: String?
-    var photographerURL: String?
-    var blurHash: String?
-}
-
 /// Layer 3 of the visuals pipeline: candidate filtering and deterministic selection.
 /// Pure and offline (FRD §5.3).
 enum PhotoSelector {

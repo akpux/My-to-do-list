@@ -35,6 +35,9 @@
 		A11000000000000000000038 /* UnsplashClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000038 /* UnsplashClientTests.swift */; };
 		A11000000000000000000039 /* VisualAttributionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000039 /* VisualAttributionTests.swift */; };
 		A11000000000000000000040 /* TaskVisualServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000040 /* TaskVisualServiceTests.swift */; };
+		A11000000000000000000041 /* ThumbnailShimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000041 /* ThumbnailShimmer.swift */; };
+		A11000000000000000000042 /* ImageSearching.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000042 /* ImageSearching.swift */; };
+		A11000000000000000000043 /* UnsplashModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12000000000000000000043 /* UnsplashModels.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +79,9 @@
 		A12000000000000000000038 /* UnsplashClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashClientTests.swift; sourceTree = "<group>"; };
 		A12000000000000000000039 /* VisualAttributionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualAttributionTests.swift; sourceTree = "<group>"; };
 		A12000000000000000000040 /* TaskVisualServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskVisualServiceTests.swift; sourceTree = "<group>"; };
+		A12000000000000000000041 /* ThumbnailShimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailShimmer.swift; sourceTree = "<group>"; };
+		A12000000000000000000042 /* ImageSearching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSearching.swift; sourceTree = "<group>"; };
+		A12000000000000000000043 /* UnsplashModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashModels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,16 +92,19 @@
 
 /* Begin PBXGroup section */
 		A15000000000000000000001 = {isa = PBXGroup; children = (A15000000000000000000020 /* Config */, A15000000000000000000002 /* MyToDoList */, A15000000000000000000003 /* MyToDoListTests */, A15000000000000000000004 /* MyToDoListUITests */, A15000000000000000000005 /* Products */); sourceTree = "<group>"; };
-		A15000000000000000000002 /* MyToDoList */ = {isa = PBXGroup; children = (A15000000000000000000010 /* App */, A15000000000000000000011 /* Models */, A15000000000000000000012 /* Services */, A15000000000000000000013 /* Styles */, A15000000000000000000014 /* Pages */, A15000000000000000000015 /* Components */, A12000000000000000000017 /* Assets.xcassets */); path = MyToDoList; sourceTree = "<group>"; };
-		A15000000000000000000003 /* MyToDoListTests */ = {isa = PBXGroup; children = (A12000000000000000000012 /* TaskLogicTests.swift */, A12000000000000000000013 /* SwiftDataPersistenceTests.swift */, A12000000000000000000033 /* VisualQueryBuilderTests.swift */, A12000000000000000000034 /* PhotoSelectorTests.swift */, A12000000000000000000038 /* UnsplashClientTests.swift */, A12000000000000000000039 /* VisualAttributionTests.swift */, A12000000000000000000040 /* TaskVisualServiceTests.swift */); path = MyToDoListTests; sourceTree = "<group>"; };
+		A15000000000000000000002 /* MyToDoList */ = {isa = PBXGroup; children = (A15000000000000000000010 /* App */, A15000000000000000000011 /* Models */, A15000000000000000000016 /* API */, A15000000000000000000012 /* Services */, A15000000000000000000013 /* Styles */, A15000000000000000000014 /* Pages */, A15000000000000000000015 /* Components */, A12000000000000000000017 /* Assets.xcassets */); path = MyToDoList; sourceTree = "<group>"; };
+		A15000000000000000000003 /* MyToDoListTests */ = {isa = PBXGroup; children = (A12000000000000000000012 /* TaskLogicTests.swift */, A12000000000000000000013 /* SwiftDataPersistenceTests.swift */, A12000000000000000000033 /* VisualQueryBuilderTests.swift */, A12000000000000000000034 /* PhotoSelectorTests.swift */, A12000000000000000000040 /* TaskVisualServiceTests.swift */, A15000000000000000000018 /* API */); path = MyToDoListTests; sourceTree = "<group>"; };
+		A15000000000000000000018 /* API */ = {isa = PBXGroup; children = (A12000000000000000000038 /* UnsplashClientTests.swift */, A12000000000000000000039 /* VisualAttributionTests.swift */); path = API; sourceTree = "<group>"; };
 		A15000000000000000000004 /* MyToDoListUITests */ = {isa = PBXGroup; children = (A12000000000000000000014 /* MyToDoListUITests.swift */); path = MyToDoListUITests; sourceTree = "<group>"; };
 		A15000000000000000000005 /* Products */ = {isa = PBXGroup; children = (A12000000000000000000020 /* MyToDoList.app */, A12000000000000000000021 /* MyToDoListTests.xctest */, A12000000000000000000022 /* MyToDoListUITests.xctest */); name = Products; sourceTree = "<group>"; };
 		A15000000000000000000010 /* App */ = {isa = PBXGroup; children = (A12000000000000000000001 /* MyToDoListApp.swift */, A12000000000000000000016 /* PreviewSupport.swift */); path = App; sourceTree = "<group>"; };
 		A15000000000000000000011 /* Models */ = {isa = PBXGroup; children = (A12000000000000000000002 /* TodoTask.swift */, A12000000000000000000003 /* UserProfile.swift */); path = Models; sourceTree = "<group>"; };
-		A15000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A12000000000000000000004 /* TaskGrouping.swift */, A12000000000000000000015 /* TaskRepository.swift */, A12000000000000000000031 /* VisualQueryBuilder.swift */, A12000000000000000000032 /* PhotoSelector.swift */, A12000000000000000000035 /* UnsplashClient.swift */, A12000000000000000000036 /* TaskVisualService.swift */, A12000000000000000000037 /* VisualAttribution.swift */); path = Services; sourceTree = "<group>"; };
+		A15000000000000000000016 /* API */ = {isa = PBXGroup; children = (A12000000000000000000042 /* ImageSearching.swift */, A15000000000000000000017 /* Unsplash */); path = API; sourceTree = "<group>"; };
+		A15000000000000000000017 /* Unsplash */ = {isa = PBXGroup; children = (A12000000000000000000035 /* UnsplashClient.swift */, A12000000000000000000043 /* UnsplashModels.swift */, A12000000000000000000037 /* VisualAttribution.swift */); path = Unsplash; sourceTree = "<group>"; };
+		A15000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A12000000000000000000004 /* TaskGrouping.swift */, A12000000000000000000015 /* TaskRepository.swift */, A12000000000000000000031 /* VisualQueryBuilder.swift */, A12000000000000000000032 /* PhotoSelector.swift */, A12000000000000000000036 /* TaskVisualService.swift */); path = Services; sourceTree = "<group>"; };
 		A15000000000000000000013 /* Styles */ = {isa = PBXGroup; children = (A12000000000000000000005 /* AppTheme.swift */); path = Styles; sourceTree = "<group>"; };
 		A15000000000000000000014 /* Pages */ = {isa = PBXGroup; children = (A12000000000000000000006 /* RootView.swift */, A12000000000000000000007 /* AuthViews.swift */, A12000000000000000000009 /* ReinstatementSheet.swift */, A12000000000000000000010 /* TaskEditorView.swift */, A12000000000000000000011 /* TaskListView.swift */); path = Pages; sourceTree = "<group>"; };
-		A15000000000000000000015 /* Components */ = {isa = PBXGroup; children = (A12000000000000000000008 /* TaskRow.swift */, A12000000000000000000018 /* TaskListEmptyState.swift */, A12000000000000000000019 /* TaskDateHeader.swift */); path = Components; sourceTree = "<group>"; };
+		A15000000000000000000015 /* Components */ = {isa = PBXGroup; children = (A12000000000000000000008 /* TaskRow.swift */, A12000000000000000000041 /* ThumbnailShimmer.swift */, A12000000000000000000018 /* TaskListEmptyState.swift */, A12000000000000000000019 /* TaskDateHeader.swift */); path = Components; sourceTree = "<group>"; };
 		A15000000000000000000020 /* Config */ = {isa = PBXGroup; children = (A12000000000000000000030 /* App.xcconfig */); path = Config; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -120,7 +129,7 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A17000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; files = (A11000000000000000000001, A11000000000000000000002, A11000000000000000000003, A11000000000000000000004, A11000000000000000000005, A11000000000000000000006, A11000000000000000000007, A11000000000000000000008, A11000000000000000000009, A11000000000000000000010, A11000000000000000000011, A11000000000000000000015, A11000000000000000000016, A11000000000000000000018, A11000000000000000000019, A11000000000000000000031, A11000000000000000000032, A11000000000000000000035, A11000000000000000000036, A11000000000000000000037); runOnlyForDeploymentPostprocessing = 0; };
+		A17000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; files = (A11000000000000000000001, A11000000000000000000002, A11000000000000000000003, A11000000000000000000004, A11000000000000000000005, A11000000000000000000006, A11000000000000000000007, A11000000000000000000008, A11000000000000000000009, A11000000000000000000010, A11000000000000000000011, A11000000000000000000015, A11000000000000000000016, A11000000000000000000018, A11000000000000000000019, A11000000000000000000031, A11000000000000000000032, A11000000000000000000035, A11000000000000000000036, A11000000000000000000037, A11000000000000000000041, A11000000000000000000042, A11000000000000000000043); runOnlyForDeploymentPostprocessing = 0; };
 		A17000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; files = (A11000000000000000000012, A11000000000000000000013, A11000000000000000000033, A11000000000000000000034, A11000000000000000000038, A11000000000000000000039, A11000000000000000000040); runOnlyForDeploymentPostprocessing = 0; };
 		A17000000000000000000003 /* Sources */ = {isa = PBXSourcesBuildPhase; files = (A11000000000000000000014); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */

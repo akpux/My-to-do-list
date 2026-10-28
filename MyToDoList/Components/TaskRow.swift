@@ -10,14 +10,17 @@ struct TaskRow: View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
             VStack(spacing: 4) {
                 HStack(alignment: .top, spacing: 8) {
-                    TaskRowThumbnail(task: task)
+                    HStack(alignment: .top, spacing: 8) {
+                        TaskRowThumbnail(task: task)
 
-                    TaskRowMeta(task: task)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        TaskRowMeta(task: task)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     TaskCheckbox(isCompleted: task.isCompleted, action: toggleCompletion)
                 }
-                .padding(.vertical, 10)
 
                 Divider()
 
@@ -46,13 +49,15 @@ struct TaskRow: View {
     }
 }
 
-/// 60pt thumbnail. The category symbol on `subtleAccent` is both the placeholder and the fallback for
-/// every non-`ready` status; a `ready` Unsplash photo is drawn over it in the same fixed frame, so a
-/// late-arriving image cannot shift layout (FRD §8.1). It only renders the persisted URL: no search
-/// and no download ping ever starts from here.
+/// 60pt thumbnail. Shows a neutral shimmer while Unsplash is resolving (`pending`) or while
+/// `AsyncImage` loads a persisted URL; the category symbol on `subtleAccent` is the terminal fallback
+/// when no photo is available (or hotlink load fails). Fixed frame so layout never shifts (FRD §8.1).
+/// No search or download ping starts from here.
 struct TaskRowThumbnail: View {
     let task: TodoTask
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var imageLoaded = false
+    @State private var imageLoadFailed = false
 
     private static let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
 
@@ -61,43 +66,84 @@ struct TaskRowThumbnail: View {
         return URL(string: string)
     }
 
+    private var showsShimmer: Bool {
+        if imageLoadFailed { return false }
+        if task.visualStatus == .pending { return true }
+        if photoURL != nil, !imageLoaded { return true }
+        return false
+    }
+
+    private var showsSymbolFallback: Bool {
+        if imageLoadFailed { return true }
+        if showsShimmer { return false }
+        return photoURL == nil
+    }
+
     private var altText: String? {
-        guard photoURL != nil,
+        guard imageLoaded,
+              photoURL != nil,
               let alt = task.visualAlt?.trimmingCharacters(in: .whitespacesAndNewlines),
               !alt.isEmpty else { return nil }
         return alt
     }
 
     var body: some View {
+        ZStack {
+            if showsSymbolFallback {
+                categorySymbolFallback
+            } else if showsShimmer {
+                ThumbnailShimmer()
+            }
+
+            if let photoURL, !imageLoadFailed {
+                AsyncImage(
+                    url: photoURL,
+                    transaction: Transaction(animation: reduceMotion ? nil : .easeIn(duration: 0.2))
+                ) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                            .onAppear { imageLoaded = true }
+                    case .failure:
+                        Color.clear
+                            .onAppear {
+                                imageLoadFailed = true
+                                imageLoaded = false
+                            }
+                    default:
+                        Color.clear
+                    }
+                }
+            }
+        }
+        .frame(width: 60, height: 60)
+        .clipShape(Self.shape)
+        .overlay {
+            Self.shape.stroke(Color(white: 0.8), lineWidth: 1)
+        }
+        .opacity(task.isCompleted ? 0.55 : 1)
+        .onChange(of: task.visualImageURL) { _, _ in
+            imageLoaded = false
+            imageLoadFailed = false
+        }
+        .onChange(of: task.visualStatusRaw) { _, _ in
+            if task.visualStatus != .ready {
+                imageLoaded = false
+                imageLoadFailed = false
+            }
+        }
+        .modifier(ThumbnailAccessibility(altText: altText))
+    }
+
+    private var categorySymbolFallback: some View {
         Image(systemName: task.category?.symbolName ?? "checklist")
             .font(.title3)
             .foregroundStyle(AppTheme.accent)
             .frame(width: 60, height: 60)
             .background(AppTheme.subtleAccent, in: Self.shape)
-            .overlay { photo }
-            .clipShape(Self.shape)
-            .overlay {
-                Self.shape.stroke(Color(white: 0.8), lineWidth: 1)
-            }
-            .opacity(task.isCompleted ? 0.55 : 1)
-            .modifier(ThumbnailAccessibility(altText: altText))
-    }
-
-    @ViewBuilder
-    private var photo: some View {
-        if let photoURL {
-            AsyncImage(
-                url: photoURL,
-                transaction: Transaction(animation: reduceMotion ? nil : .easeIn(duration: 0.2))
-            ) { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 60, height: 60)
-                }
-            }
-        }
     }
 }
 
@@ -177,29 +223,27 @@ struct TaskRowFooter: View {
     var body: some View {
         HStack {
             if task.isMissed(now: now) {
-                Label {
+                HStack(spacing: 4) {
+                    Image("CalendarSchedule")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 14, height: 14)
                     Text("Missed")
                         .font(.footnote.weight(.semibold))
-                } icon: {
-                    Image("CalendarSchedule")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 14, height: 14)
                 }
                 .foregroundStyle(.red)
-                .labelStyle(.titleAndIcon)
+                .accessibilityElement(children: .combine)
             } else if let dueDate = task.dueDate {
-                Label {
-                    Text(dueDate.formatted(date: .abbreviated, time: .shortened))
-                        .font(.footnote.weight(.semibold))
-                } icon: {
+                HStack(spacing: 4) {
                     Image("CalendarSchedule")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 14, height: 14)
+                    Text(dueDate.taskRowDueDateTimeText)
+                        .font(.footnote.weight(.semibold))
                 }
                 .foregroundStyle(.primary)
-                .labelStyle(.titleAndIcon)
+                .accessibilityElement(children: .combine)
             }
 
             Spacer(minLength: 8)
@@ -213,7 +257,7 @@ struct TaskRowFooter: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                 }
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AppTheme.textSecondary)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Edit task")
@@ -262,6 +306,18 @@ struct TaskCheckbox: View {
 
 #Preview("Completed") {
     let sample = PreviewSupport.sampleTask(title: "Reply to mail", isCompleted: true)
+    return List {
+        TaskRow(task: sample.task, toggleCompletion: {}, reinstate: {}, edit: {})
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+    }
+    .listStyle(.plain)
+    .modelContainer(sample.container)
+}
+
+#Preview("Visual pending (shimmer)") {
+    let sample = PreviewSupport.sampleTask(title: "Buy groceries")
+    sample.task.visualStatus = .pending
     return List {
         TaskRow(task: sample.task, toggleCompletion: {}, reinstate: {}, edit: {})
             .listRowSeparator(.hidden)

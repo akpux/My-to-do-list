@@ -40,9 +40,14 @@ If a node uses a HIG-looking **style name** but the **resolved value** is this a
 MyToDoList/
   App/          MyToDoListApp.swift, PreviewSupport.swift
   Models/       TodoTask.swift, UserProfile.swift
+  API/          ← every external network API lives here, one subfolder per provider
+    ImageSearching.swift                 ← provider-agnostic contract: protocol, ImageCandidate, ImageSearchError
+    Unsplash/   UnsplashClient.swift (requests, transport, error mapping, key from Info.plist)
+                UnsplashModels.swift (response DTOs → ImageCandidate)
+                VisualAttribution.swift (required "Photo by … on Unsplash" credit + UTM links)
   Services/     TaskRepository.swift, TaskGrouping.swift
-                VisualQueryBuilder.swift (+ privacy guard), PhotoSelector.swift, UnsplashClient.swift,
-                TaskVisualService.swift, VisualAttribution.swift   ← task visuals (see FRD §5–§8)
+                VisualQueryBuilder.swift (+ privacy guard), PhotoSelector.swift,
+                TaskVisualService.swift   ← on-device task-visuals logic; talks to API/ only via ImageSearching (FRD §5–§8)
   Styles/       AppTheme.swift          ← brand color + shared button chrome
   Pages/        screens (composers, covers, sheets)
   Components/   local reusable UI
@@ -58,7 +63,7 @@ scripts/        sync-secrets.sh          ← .env → Config/Secrets.xcconfig (a
 | Task list | `Pages/TaskListView.swift` | Composer: `NavigationStack` + `List` of local cards + HUI segmented control / Add / sort `Menu` |
 | Empty list | `Components/TaskListEmptyState.swift` | Local empty (glyph + copy); not `ContentUnavailableView` unless it matches the frame |
 | Date group | `Components/TaskDateHeader.swift` | Local hairline + date label between card groups |
-| Task row | `Components/TaskRow.swift` | Local **card** inside `List` (thumbnail, meta, footer). Subviews: thumbnail / meta / footer. Thumbnail is the Unsplash photo when `visualStatus == .ready`, else the category SF Symbol on `subtleAccent` |
+| Task row | `Components/TaskRow.swift` | Local **card** inside `List` (thumbnail, meta, footer). Subviews: thumbnail / meta / footer. Thumbnail: Unsplash photo when loaded; neutral shimmer while `pending` or `AsyncImage` loading; category SF Symbol on `subtleAccent` for terminal fallback states |
 | New / edit task | `Pages/TaskEditorView.swift` | `Form` in a full-screen cover |
 | Reinstate | `Pages/ReinstatementSheet.swift` | Local sheet, medium detent |
 | Parked auth | `SignUpView`, forgot-password in `AuthViews.swift` | Not in launch flow |
@@ -77,7 +82,7 @@ enum AppTheme {
 }
 ```
 
-Put **new** reusable chrome in `Styles/AppTheme` or a new type in `Components/`. New screens go in `Pages/`. Do not scatter one-off hex values across files.
+Put **new** reusable chrome in `Styles/AppTheme` or a new type in `Components/`. New screens go in `Pages/`. New external APIs go in `API/<Provider>/` (client + response models), with tests in `MyToDoListTests/API/`. Do not scatter one-off hex values across files.
 
 Homepage **list vs card:** keep a SwiftUI `List` (swipe actions, one scroll). Draw Figma’s card chrome on each row (clear row background, hidden separators). Do not rebuild the page as `ScrollView` + `LazyVStack` unless Console proves there is no list container.
 
@@ -461,7 +466,7 @@ Step by step:
 6. **Chrome** — drop device bezels; use toolbar APIs for nav actions. Homepage: `List` + local card rows.
 7. **Parity** — Console screenshot vs implementation; flag missing Assets instead of substituting SF Symbols or stock photos. A stock photo is legitimate **only** as a task visual produced by the visuals pipeline (FRD §5). It is never a stand-in for an un-exported Figma icon, illustration, or empty-state asset.
 
-Figma parity for the thumbnail: `TaskRow` component set `82:1370` already has a thumbnail slot. When comparing with `figma_check_design_parity`, compare the **photo thumbnail** state (60pt, 8pt radius, `scaledToFill`) as well as the symbol placeholder. The symbol on `subtleAccent` remains the correct render for every non-`ready` status.
+Figma parity for the thumbnail: `TaskRow` component set `82:1370` already has a thumbnail slot. When comparing with `figma_check_design_parity`, compare the **photo thumbnail** state (60pt, 8pt radius, `scaledToFill`) as well as the shimmer loading state and the symbol fallback. The symbol on `subtleAccent` remains the correct render for terminal non-photo statuses.
 
 ---
 
@@ -530,7 +535,7 @@ Text("What should we call you?")
 - [ ] Official Figma MCP **not** used as a fallback
 - [ ] File-local icons exported or documented in §3.1 — not replaced with guessed SF Symbols
 - [ ] Leftover device chrome not implemented
-- [ ] Task thumbnail states checked in Xcode: `ready` (photo), `pending` / `fallback` / `privacyBlocked` / `noResults` / `skippedNoKey` / `idle` (symbol), completed (dimmed)
+- [ ] Task thumbnail states checked in Xcode: `ready` (photo), `pending` (shimmer), `fallback` / `privacyBlocked` / `noResults` / `skippedNoKey` / `idle` (symbol), completed (dimmed)
 - [ ] No network call added to `TaskRow.body`, `onAppear`, or a list `ForEach`
 - [ ] Photo credit reachable for every `ready` visual; `UNSPLASH_SECRET_KEY` not referenced in the app target
 - [ ] Human can check Canvas / simulator in Xcode
